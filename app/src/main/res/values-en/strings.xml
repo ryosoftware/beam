@@ -38,12 +38,23 @@
     <string name="supportMe">Support development</string>
     <string name="copy">Copy</string>
     <string name="about">About</string>
+    <string name="interfaceSection">Interface</string>
     <string name="theme">Theme</string>
     <string name="notification">Notification</string>
-    <string name="themeDesc">Mode, colour</string>
+    <string name="themeDesc">Mode, colour, backlight</string>
+    <string name="showTimeToFull">Charge Time Estimate</string>
+    <string name="showTimeToFullDesc">Show time remaining until fully charged in the notification</string>
+    <string name="backlight">Backlight</string>
+    <string name="heroBacklight">Hero Backlight</string>
+    <string name="heroBacklightDesc">Animated glow effect behind the hero card</string>
     <string name="notificationDesc">Icon, entries</string>
     <string name="notificationEnableDesc">Persistent battery notification</string>
     <string name="workaroundsShortDesc">Device-specific fixes</string>
     <string name="sourceCode">Source Code</string>
     <string name="advancedSettings">Advanced Settings</string>
+    <string name="tweaks">Tweaks</string>
+    <string name="pollInterval">Update Interval</string>
+    <string name="haptics">Haptics</string>
+    <string name="hapticsEnabled">Haptic Feedback</string>
+    <string name="hapticsEnabledDesc">Vibrate on tap and press</string>
 </resources>

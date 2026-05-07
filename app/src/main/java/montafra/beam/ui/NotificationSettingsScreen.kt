@@ -2,20 +2,27 @@ package montafra.beam.ui
 
 import android.content.Context
 import android.content.Intent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -25,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -36,7 +44,7 @@ import montafra.beam.R
 import montafra.beam.settingsName
 import montafra.beam.settingsUpdateInd
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationSettingsScreen(navController: NavController) {
     val context = LocalContext.current
@@ -49,6 +57,7 @@ fun NotificationSettingsScreen(navController: NavController) {
     var notificationIndicator by remember {
         mutableStateOf(prefs.getString("notificationIndicator", "W") ?: "W")
     }
+    var showTimeToFull by remember { mutableStateOf(prefs.getBoolean("showTimeToFull", true)) }
 
     fun saveIndicatorEntries() {
         prefs.edit().putStringSet("indicatorEntries", indicatorEntries).commit()
@@ -84,37 +93,36 @@ fun NotificationSettingsScreen(navController: NavController) {
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { Spacer(Modifier.height(4.dp)) }
             item {
+                val metricLabels = remember { listOf("W", "A", "Ah", "°C", "V", "Wh", "%") }
+                val metricKeys   = remember { listOf("W", "A", "Ah", "C",  "V", "Wh", "%") }
                 SubLabel(stringResource(R.string.notificationIcon))
-                Spacer(Modifier.height(6.dp))
-                val iconLabels = listOf("W", "A", "Ah", "°C", "V", "Wh", "%")
-                val iconKeys   = listOf("W", "A", "Ah", "C",  "V", "Wh", "%")
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    iconKeys.forEachIndexed { i, key ->
-                        FilterChip(
+                Spacer(Modifier.height(8.dp))
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    metricKeys.forEachIndexed { i, key ->
+                        SegmentedButton(
                             selected = notificationIndicator == key,
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 notificationIndicator = key
                                 saveNotificationIndicator()
                             },
-                            label = { Text(iconLabels[i]) },
+                            shape = SegmentedButtonDefaults.itemShape(i, metricKeys.size),
+                            label = { Text(metricLabels[i]) },
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 SubLabel(stringResource(R.string.statusBarIndicator))
-                Spacer(Modifier.height(6.dp))
-                val metricLabels = listOf("W", "A", "Ah", "°C", "V", "Wh", "%")
-                val metricKeys   = listOf("W", "A", "Ah", "C",  "V", "Wh", "%")
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Spacer(Modifier.height(8.dp))
+                MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     metricKeys.forEachIndexed { i, key ->
-                        FilterChip(
-                            selected = key in indicatorEntries,
-                            onClick = {
+                        SegmentedButton(
+                            checked = key in indicatorEntries,
+                            onCheckedChange = {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 indicatorEntries = if (key in indicatorEntries)
                                     indicatorEntries - key
@@ -122,10 +130,43 @@ fun NotificationSettingsScreen(navController: NavController) {
                                     indicatorEntries + key
                                 saveIndicatorEntries()
                             },
+                            shape = SegmentedButtonDefaults.itemShape(i, metricKeys.size),
                             label = { Text(metricLabels[i]) },
                         )
                     }
                 }
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.showTimeToFull)) },
+                    supportingContent = { Text(stringResource(R.string.showTimeToFullDesc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showTimeToFull,
+                            onCheckedChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                showTimeToFull = it
+                                prefs.edit().putBoolean("showTimeToFull", it).commit()
+                                context.sendBroadcast(
+                                    Intent().setPackage(context.packageName).setAction(settingsUpdateInd)
+                                )
+                            },
+                        )
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            showTimeToFull = !showTimeToFull
+                            prefs.edit().putBoolean("showTimeToFull", showTimeToFull).commit()
+                            context.sendBroadcast(
+                                Intent().setPackage(context.packageName).setAction(settingsUpdateInd)
+                            )
+                        },
+                )
             }
             item { Spacer(Modifier.height(16.dp)) }
         }

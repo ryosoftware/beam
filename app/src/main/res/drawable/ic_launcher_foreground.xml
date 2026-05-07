@@ -4,12 +4,29 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Spotlight cone: centered at (54,54), apex bottom-left, opens toward top-right -->
+    <!-- Spotlight beam: solid stroke + translucent inner fill -->
     <path
         android:pathData="M38,72 L57,31 A45,45 0 0 0 79,53 Z"
-        android:fillColor="#00000000"
+        android:fillColor="#40FFFFFF"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="5.5"
+        android:strokeWidth="4.5"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"/>
+
+    <!-- Persistent notification: source dot + radiating waves -->
+    <path
+        android:pathData="M32,32 m-2.5,0 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0"
+        android:fillColor="#FFFFFFFF"/>
+    <path
+        android:pathData="M38,32 A6,6 0 0 1 32,38"
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"/>
+    <path
+        android:pathData="M43,32 A11,11 0 0 1 32,43"
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"/>
 </vector>

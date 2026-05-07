@@ -29,6 +29,9 @@ class StatusService : Service() {
     }
     private var indicatorEntries: Set<String> = emptySet()
     private var notificationIndicator: String = "W"
+    private var showTimeToFull: Boolean = true
+    private var pollIntervalMs: Long = intervalMs
+    private var notificationEnabled = true
     private var initialized = false
     private lateinit var msgReceiver: MsgReceiver
     private val metricOrder = listOf("W", "A", "Ah", "C", "V", "Wh", "%")
@@ -36,7 +39,7 @@ class StatusService : Service() {
     private lateinit var noteMgr: NotificationManager
     private var pluggedInAt: ZonedDateTime? = null
     private lateinit var snapshot: BatterySnapshot
-    private val task = PeriodicTask({ update() }, intervalMs)
+    private val task = PeriodicTask({ update() }, { pollIntervalMs })
 
     private fun debug(msg: String) {
         Log.d(this::class.java.name, msg)
@@ -47,7 +50,8 @@ class StatusService : Service() {
             when (intent.action) {
                 batteryDataReq -> updateData()
                 settingsUpdateInd -> {
-                    if (loadSettings()) update()
+                    loadSettings()
+                    update()
                 }
                 Intent.ACTION_POWER_CONNECTED -> {
                     pluggedInAt = ZonedDateTime.now()
@@ -63,19 +67,16 @@ class StatusService : Service() {
         }
     }
 
-    private fun loadSettings(): Boolean {
+    private fun loadSettings() {
         val settings = getSharedPreferences(settingsName, MODE_MULTI_PROCESS)
-        if (!settings.getBoolean("notificationEnabled", true)) {
-            stopForeground(STOP_FOREGROUND_REMOVE)
-            task.stop()
-            stopSelf()
-            return false
-        }
+        notificationEnabled = settings.getBoolean("notificationEnabled", true)
+        if (!notificationEnabled) stopForeground(STOP_FOREGROUND_REMOVE)
         battery.currentScalar = settings.getFloat("currentScalar", 1f).toDouble()
         battery.invertCurrent = settings.getBoolean("invertCurrent", false)
         indicatorEntries = settings.getStringSet("indicatorEntries", null) ?: emptySet()
         notificationIndicator = settings.getString("notificationIndicator", "W") ?: "W"
-        return true
+        showTimeToFull = settings.getBoolean("showTimeToFull", true)
+        pollIntervalMs = settings.getLong("pollIntervalMs", intervalMs)
     }
 
     private fun metricLabel(key: String) = getString(when (key) {
@@ -147,13 +148,15 @@ class StatusService : Service() {
         super.onStartCommand(intent, flags, startId)
 
         init()
-        if (!loadSettings()) return START_NOT_STICKY
+        loadSettings()
         task.start()
 
-        try {
-            startForeground(noteId, buildNotification())
-        } catch (e: Exception) {
-            error("Failed to foreground StatusService: ${e.message}")
+        if (notificationEnabled) {
+            try {
+                startForeground(noteId, buildNotification())
+            } catch (e: Exception) {
+                error("Failed to foreground StatusService: ${e.message}")
+            }
         }
 
         return START_STICKY
@@ -194,7 +197,7 @@ class StatusService : Service() {
     private fun buildNotification(): Notification {
         val iconValue = metricValue(notificationIndicator)
         val iconUnit  = metricUnit(notificationIndicator)
-        val timeText = when (val seconds = snapshot.secondsUntilCharged) {
+        val timeText = if (!showTimeToFull) "" else when (val seconds = snapshot.secondsUntilCharged) {
             null -> ""
             0.0  -> getString(R.string.fullyCharged)
             else -> "${fmtSeconds(seconds)} until full charge"
@@ -272,7 +275,7 @@ class StatusService : Service() {
         debug("update()")
 
         snapshot = battery.snapshot()
-        noteMgr.notify(noteId, buildNotification())
+        if (notificationEnabled) noteMgr.notify(noteId, buildNotification())
         updateData()
     }
 }

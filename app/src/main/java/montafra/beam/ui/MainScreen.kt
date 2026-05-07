@@ -39,12 +39,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
@@ -53,10 +60,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalHapticFeedback
 import kotlinx.coroutines.launch
 import androidx.compose.ui.res.painterResource
@@ -70,6 +77,7 @@ import kotlin.math.sin
 import montafra.beam.BatteryData
 import montafra.beam.BatteryViewModel
 import montafra.beam.R
+import montafra.beam.settingsName
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,6 +86,21 @@ fun MainScreen(navController: NavController, vm: BatteryViewModel = viewModel())
     val primary = MaterialTheme.colorScheme.primary
     val background = MaterialTheme.colorScheme.background
     val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) { vm.requestUpdate() }
+
+    val heroBacklight = remember { mutableStateOf(
+        context.getSharedPreferences(settingsName, Context.MODE_PRIVATE).getBoolean("heroBacklight", true)
+    ) }
+    DisposableEffect(Unit) {
+        val prefs = context.getSharedPreferences(settingsName, Context.MODE_PRIVATE)
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { p, key ->
+            if (key == "heroBacklight") heroBacklight.value = p.getBoolean(key, true)
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
 
     val noiseBitmap = remember {
         val sz = 256
@@ -136,66 +159,6 @@ fun MainScreen(navController: NavController, vm: BatteryViewModel = viewModel())
     }
 
     Box(Modifier.fillMaxSize().background(background)) {
-        Canvas(Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-            clipRect(left = 0f, top = 0f, right = w, bottom = h * 0.50f) {
-            val cx = w * 0.50f + w * 0.04f * (sway * 2f - 1f)
-            val cy = h * 0.22f + h * 0.03f * breathe
-
-            val outerR = w * 0.76f * (0.90f + 0.10f * f3)
-            drawCircle(
-                brush = Brush.radialGradient(
-                    listOf(primary.copy(alpha = (0.08f + 0.04f * f2) * glowScale), Color.Transparent),
-                    center = Offset(cx, cy), radius = outerR,
-                ),
-                radius = outerR, center = Offset(cx, cy),
-            )
-
-            val nOrbs = 6
-            val ringR    = w * 0.08f
-            val baseOrbR = w * 0.20f
-            for (i in 0 until nOrbs) {
-                val baseAngle = (i.toFloat() / nOrbs) * 2f * PI.toFloat() + sway * 0.5f
-                val driftX = ((f1 - 0.5f) * cos(i * 1.3f).toFloat() +
-                              (f2 - 0.5f) * sin(i * 2.1f).toFloat()) * w * 0.025f
-                val driftY = ((f2 - 0.5f) * cos(i * 1.7f).toFloat() +
-                              (f3 - 0.5f) * sin(i * 0.9f).toFloat()) * h * 0.018f
-                val ox = cx + ringR * cos(baseAngle).toFloat() + driftX
-                val oy = cy + ringR * sin(baseAngle).toFloat() + driftY
-                val sizeFactor = when (i % 5) {
-                    0    -> f1
-                    1    -> f2
-                    2    -> f3
-                    3    -> (f1 + f3) * 0.5f
-                    else -> (f2 + f1) * 0.5f
-                }
-                val orbRi = baseOrbR * (0.65f + 0.45f * sizeFactor)
-                val phase = when (i % 3) {
-                    0    -> f1 * 0.55f + f2 * 0.45f
-                    1    -> f2 * 0.55f + f3 * 0.45f
-                    else -> f3 * 0.55f + f1 * 0.45f
-                }
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        listOf(primary.copy(alpha = (0.14f + 0.17f * phase) * glowScale), Color.Transparent),
-                        center = Offset(ox, oy), radius = orbRi,
-                    ),
-                    radius = orbRi, center = Offset(ox, oy),
-                )
-            }
-
-            val coreR = w * 0.12f * (0.72f + 0.32f * f1)
-            drawCircle(
-                brush = Brush.radialGradient(
-                    listOf(primary.copy(alpha = (0.26f + 0.18f * (f1 * f2)) * glowScale), Color.Transparent),
-                    center = Offset(cx, cy), radius = coreR,
-                ),
-                radius = coreR, center = Offset(cx, cy),
-            )
-            }
-        }
-
         if (!isOled) {
             Canvas(Modifier.fillMaxSize()) {
                 drawRect(brush = grainBrush, alpha = 22f / 255f)
@@ -231,7 +194,71 @@ fun MainScreen(navController: NavController, vm: BatteryViewModel = viewModel())
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item { Spacer(Modifier.height(4.dp)) }
-                item { HeroCard(data, f1, f2, f3, sway, breathe) }
+                item {
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(40.dp))
+                    ) {
+                        if (heroBacklight.value) Canvas(Modifier.matchParentSize()) {
+                            val w = size.width
+                            val h = size.height
+                            val cx = w * 0.50f + w * 0.04f * (sway * 2f - 1f)
+                            val cy = h * 0.50f + h * 0.03f * breathe
+
+                            val outerR = w * 0.76f * (0.90f + 0.10f * f3)
+                            drawCircle(
+                                brush = Brush.radialGradient(
+                                    listOf(primary.copy(alpha = (0.08f + 0.04f * f2) * glowScale), Color.Transparent),
+                                    center = Offset(cx, cy), radius = outerR,
+                                ),
+                                radius = outerR, center = Offset(cx, cy),
+                            )
+
+                            val nOrbs = 6
+                            val ringR    = w * 0.08f
+                            val baseOrbR = w * 0.20f
+                            for (i in 0 until nOrbs) {
+                                val baseAngle = (i.toFloat() / nOrbs) * 2f * PI.toFloat() + sway * 0.5f
+                                val driftX = ((f1 - 0.5f) * cos(i * 1.3f).toFloat() +
+                                              (f2 - 0.5f) * sin(i * 2.1f).toFloat()) * w * 0.025f
+                                val driftY = ((f2 - 0.5f) * cos(i * 1.7f).toFloat() +
+                                              (f3 - 0.5f) * sin(i * 0.9f).toFloat()) * h * 0.018f
+                                val ox = cx + ringR * cos(baseAngle).toFloat() + driftX
+                                val oy = cy + ringR * sin(baseAngle).toFloat() + driftY
+                                val sizeFactor = when (i % 5) {
+                                    0    -> f1
+                                    1    -> f2
+                                    2    -> f3
+                                    3    -> (f1 + f3) * 0.5f
+                                    else -> (f2 + f1) * 0.5f
+                                }
+                                val orbRi = baseOrbR * (0.65f + 0.45f * sizeFactor)
+                                val phase = when (i % 3) {
+                                    0    -> f1 * 0.55f + f2 * 0.45f
+                                    1    -> f2 * 0.55f + f3 * 0.45f
+                                    else -> f3 * 0.55f + f1 * 0.45f
+                                }
+                                drawCircle(
+                                    brush = Brush.radialGradient(
+                                        listOf(primary.copy(alpha = (0.14f + 0.17f * phase) * glowScale), Color.Transparent),
+                                        center = Offset(ox, oy), radius = orbRi,
+                                    ),
+                                    radius = orbRi, center = Offset(ox, oy),
+                                )
+                            }
+
+                            val coreR = w * 0.12f * (0.72f + 0.32f * f1)
+                            drawCircle(
+                                brush = Brush.radialGradient(
+                                    listOf(primary.copy(alpha = (0.26f + 0.18f * (f1 * f2)) * glowScale), Color.Transparent),
+                                    center = Offset(cx, cy), radius = coreR,
+                                ),
+                                radius = coreR, center = Offset(cx, cy),
+                            )
+                        }
+                        HeroCard(data)
+                    }
+                }
                 item { Spacer(Modifier.height(8.dp)) }
                 item {
                     MetricCard {
@@ -260,17 +287,14 @@ fun MainScreen(navController: NavController, vm: BatteryViewModel = viewModel())
 }
 
 @Composable
-private fun HeroCard(
-    data: BatteryData,
-    f1: Float, f2: Float, f3: Float, sway: Float, breathe: Float,
-) {
+private fun HeroCard(data: BatteryData) {
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val primary = MaterialTheme.colorScheme.primary
     val onSurface = MaterialTheme.colorScheme.onSurface
 
-    val cardScaleX = remember { Animatable(1f) }
-    val cardScaleY = remember { Animatable(1f) }
+    val scaleAnim = remember { Animatable(1f) }
+    val lastTapMs = remember { LongArray(1) }
 
     val animatedProgress by animateFloatAsState(
         targetValue = data.chargeLevelFloat,
@@ -279,30 +303,7 @@ private fun HeroCard(
     )
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(scaleX = cardScaleX.value, scaleY = cardScaleY.value)
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        scope.launch {
-                            val snap = spring<Float>(
-                                stiffness = Spring.StiffnessHigh,
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                            )
-                            val jelly = spring<Float>(stiffness = 350f, dampingRatio = 0.2f)
-                            // squash-stretch: widen, compress height
-                            launch { cardScaleX.animateTo(1.08f, snap) }
-                            cardScaleY.animateTo(0.96f, snap)
-                            // jelly oscillation back to rest
-                            launch { cardScaleX.animateTo(1f, jelly) }
-                            cardScaleY.animateTo(1f, jelly)
-                        }
-                        tryAwaitRelease()
-                    }
-                )
-            },
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(40.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.45f),
@@ -315,7 +316,36 @@ private fun HeroCard(
                 .padding(horizontal = 24.dp, vertical = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .scale(scaleAnim.value)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = { _ ->
+                                val now = System.currentTimeMillis()
+                                val isDouble = (now - lastTapMs[0]) < 300L
+                                lastTapMs[0] = now
+                                if (isDouble) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                } else {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    scope.launch {
+                                        scaleAnim.animateTo(
+                                            0.82f,
+                                            spring(stiffness = 600f, dampingRatio = 0.65f),
+                                        )
+                                        scaleAnim.animateTo(
+                                            1f,
+                                            spring(stiffness = 280f, dampingRatio = 0.4f),
+                                        )
+                                    }
+                                }
+                                tryAwaitRelease()
+                            }
+                        )
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 AnimatedContent(
                     targetState = data.power.removeSuffix("W"),
                     transitionSpec = {

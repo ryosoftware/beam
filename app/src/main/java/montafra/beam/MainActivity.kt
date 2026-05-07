@@ -1,8 +1,8 @@
 package montafra.beam
 
 import android.Manifest.permission
-import android.app.ActivityManager
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,8 +13,15 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -35,6 +42,10 @@ const val noteId = 1
 const val settingsName = "settings"
 const val settingsUpdateInd = "$namespace.settings-update-ind"
 
+private object NoOpHapticFeedback : HapticFeedback {
+    override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) {}
+}
+
 class MainActivity : ComponentActivity() {
     enum class Perm { Granted, Denied, NotAsked }
 
@@ -53,25 +64,45 @@ class MainActivity : ComponentActivity() {
         requestPermissions(arrayOf(name), 0)
     }
 
-    @Suppress("DEPRECATION")
-    private fun serviceRunning(): Boolean {
-        val serviceName = StatusService::class.java.name
-        val mgr = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        return mgr.getRunningServices(Int.MAX_VALUE).any { it.service.className == serviceName }
+    private fun maybeStartService() {
+        if (getSharedPreferences(settingsName, MODE_PRIVATE).getBoolean("notificationEnabled", true))
+            startForegroundService(Intent(this, StatusService::class.java))
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (permissions.contains(permission.POST_NOTIFICATIONS)) maybeStartService()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        if (getPerm(permission.POST_NOTIFICATIONS) == Perm.NotAsked)
+        if (getPerm(permission.POST_NOTIFICATIONS) == Perm.NotAsked) {
             requestPerm(permission.POST_NOTIFICATIONS)
-        if (!serviceRunning())
-            startForegroundService(Intent(this, StatusService::class.java))
+            // maybeStartService() is called from onRequestPermissionsResult once the user responds
+        } else {
+            maybeStartService()
+        }
 
         setContent {
             val themePrefs by rememberThemePrefs()
+            val hapticsEnabled = remember {
+                mutableStateOf(getSharedPreferences(settingsName, MODE_PRIVATE).getBoolean("hapticsEnabled", true))
+            }
+            DisposableEffect(Unit) {
+                val prefs = getSharedPreferences(settingsName, MODE_PRIVATE)
+                val listener = SharedPreferences.OnSharedPreferenceChangeListener { p, key ->
+                    if (key == "hapticsEnabled") hapticsEnabled.value = p.getBoolean(key, true)
+                }
+                prefs.registerOnSharedPreferenceChangeListener(listener)
+                onDispose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+            }
+            val realHaptic = LocalHapticFeedback.current
             BeamTheme(themePrefs) {
+                CompositionLocalProvider(
+                    LocalHapticFeedback provides if (hapticsEnabled.value) realHaptic else NoOpHapticFeedback
+                ) {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
@@ -95,6 +126,7 @@ class MainActivity : ComponentActivity() {
                     composable("settings/notification") { NotificationSettingsScreen(navController) }
                     composable("settings/workarounds") { WorkaroundsSettingsScreen(navController) }
                 }
+                } // CompositionLocalProvider
             }
         }
     }

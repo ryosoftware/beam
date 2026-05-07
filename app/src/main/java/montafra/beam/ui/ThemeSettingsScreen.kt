@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,14 +15,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -32,6 +37,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -52,6 +58,8 @@ fun ThemeSettingsScreen(navController: NavController) {
 
     var themeMode by remember { mutableStateOf(prefs.getString("themeMode", "system") ?: "system") }
     var customColorValue by remember { mutableIntStateOf(prefs.getInt("themeColorValue", colorSwatches[6])) }
+    var heroBacklight by remember { mutableStateOf(prefs.getBoolean("heroBacklight", true)) }
+    var hapticsEnabled by remember { mutableStateOf(prefs.getBoolean("hapticsEnabled", true)) }
 
     Scaffold(
         topBar = {
@@ -77,12 +85,12 @@ fun ThemeSettingsScreen(navController: NavController) {
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item { Spacer(Modifier.height(4.dp)) }
             item {
                 SubLabel(stringResource(R.string.themeMode))
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 val modeOptions = listOf(
                     stringResource(R.string.themeModeSystem),
                     stringResource(R.string.themeModeLight),
@@ -105,9 +113,9 @@ fun ThemeSettingsScreen(navController: NavController) {
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(16.dp))
                 SubLabel(stringResource(R.string.themeColor))
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 val colorOptions = listOf(
                     stringResource(R.string.themeColorAuto),
                     stringResource(R.string.themeColorCustom),
@@ -148,7 +156,64 @@ fun ThemeSettingsScreen(navController: NavController) {
                     }
                 }
             }
+            item {
+                SubLabel(stringResource(R.string.backlight))
+                Spacer(Modifier.height(8.dp))
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.heroBacklight)) },
+                    supportingContent = { Text(stringResource(R.string.heroBacklightDesc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = heroBacklight,
+                            onCheckedChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                heroBacklight = it
+                                prefs.edit().putBoolean("heroBacklight", it).commit()
+                            },
+                        )
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            heroBacklight = !heroBacklight
+                            prefs.edit().putBoolean("heroBacklight", heroBacklight).commit()
+                        },
+                )
+            }
+            item {
+                SubLabel(stringResource(R.string.haptics))
+                Spacer(Modifier.height(8.dp))
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.hapticsEnabled)) },
+                    supportingContent = { Text(stringResource(R.string.hapticsEnabledDesc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = hapticsEnabled,
+                            onCheckedChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                hapticsEnabled = it
+                                prefs.edit().putBoolean("hapticsEnabled", it).commit()
+                            },
+                        )
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    ),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            hapticsEnabled = !hapticsEnabled
+                            prefs.edit().putBoolean("hapticsEnabled", hapticsEnabled).commit()
+                        },
+                )
+            }
             item { Spacer(Modifier.height(16.dp)) }
         }
     }
+
 }
