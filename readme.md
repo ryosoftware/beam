@@ -1,8 +1,5 @@
-<p align="center">
-  <img src="app/src/main/ic_launcher-playstore.png" alt="Beam" width="128">
-</p>
-
 # Beam
+
 
 *Real-time battery monitor for Android.*
 
