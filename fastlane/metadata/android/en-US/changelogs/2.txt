@@ -1,2 +1,0 @@
-* Start indicator service on boot
-* Run indicator service in its own process

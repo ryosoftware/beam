@@ -5,7 +5,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
+import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -59,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -74,7 +77,18 @@ import montafra.beam.settingsUpdateInd
 fun SettingsScreen(navController: NavController) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val view = LocalView.current
     val prefs = remember { context.getSharedPreferences(settingsName, Context.MODE_PRIVATE) }
+
+    val notificationToggleHaptic = { enabled: Boolean ->
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            view.performHapticFeedback(
+                if (enabled) HapticFeedbackConstants.CONFIRM else HapticFeedbackConstants.REJECT
+            )
+        } else {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+    }
     val clipboardManager = remember {
         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     }
@@ -149,15 +163,16 @@ fun SettingsScreen(navController: NavController) {
                             Switch(
                                 checked = notificationEnabled,
                                 onCheckedChange = { enabled ->
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    notificationToggleHaptic(enabled)
                                     setNotificationEnabled(enabled)
                                 },
                             )
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         modifier = Modifier.clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            setNotificationEnabled(!notificationEnabled)
+                            val next = !notificationEnabled
+                            notificationToggleHaptic(next)
+                            setNotificationEnabled(next)
                         },
                     )
                 }
@@ -170,7 +185,7 @@ fun SettingsScreen(navController: NavController) {
                     Column {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(4.dp),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                         ) {

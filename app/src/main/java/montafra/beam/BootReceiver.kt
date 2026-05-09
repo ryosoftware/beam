@@ -31,6 +31,12 @@ class BootReceiver : BroadcastReceiver() {
             return
         }
 
+        val prefs = context.getSharedPreferences(settingsName, Context.MODE_MULTI_PROCESS)
+        if (!prefs.getBoolean("notificationEnabled", true)) {
+            debug("notifications disabled; skipping service start at boot")
+            return
+        }
+
         debug("starting status service...")
         try {
             context.startForegroundService(Intent(context, StatusService::class.java))

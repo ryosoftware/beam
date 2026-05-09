@@ -1,2 +1,0 @@
-• Fix highlight color on Samsung phones in dark mode
-

@@ -1,2 +1,0 @@
-• Use static version info for F-Droid
-

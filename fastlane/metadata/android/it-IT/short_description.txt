@@ -1,0 +1,1 @@
+Aggiornamenti in tempo reale sullo stato della batteria dentro la barra di stato

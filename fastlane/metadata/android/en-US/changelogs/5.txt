@@ -1,1 +1,0 @@
-* Add work around for devices which report incorrect battery current units (e.g. Samsung devices) - https://github.com/dubrowgn/wattz/issues/5

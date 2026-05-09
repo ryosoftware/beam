@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.*
 import android.graphics.drawable.Icon
+import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import java.time.LocalDateTime
@@ -40,6 +41,7 @@ class StatusService : Service() {
     private var pluggedInAt: ZonedDateTime? = null
     private lateinit var snapshot: BatterySnapshot
     private val task = PeriodicTask({ update() }, { pollIntervalMs })
+    private val binder = Binder()
 
     private fun debug(msg: String) {
         Log.d(this::class.java.name, msg)
@@ -142,14 +144,19 @@ class StatusService : Service() {
         )
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        init()
+        loadSettings()
+        task.start()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         debug("onStartCommand()")
 
         super.onStartCommand(intent, flags, startId)
 
-        init()
         loadSettings()
-        task.start()
 
         if (notificationEnabled) {
             try {
@@ -169,9 +176,7 @@ class StatusService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
+    override fun onBind(intent: Intent?): IBinder = binder
 
     private fun renderIcon(value: String, unit: String): Icon {
         val density = resources.displayMetrics.density

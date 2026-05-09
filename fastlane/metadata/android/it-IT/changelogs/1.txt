@@ -1,0 +1,7 @@
+Prima versione di Beam.
+• Indicatore configurabile nella barra di stato (W, A, Ah, V, Wh, °C, %)
+• Panoramica dettagliata della batteria con tipo di alimentatore e cronologia di carica
+• Temi Material You, colore personalizzato e OLED
+• Design a schede vetro smerigliato con bagliore hero e vibrazioni
+• Correzioni per dispositivi che riportano µA, corrente invertita o cadenza di polling anomala
+• Open source con indirizzi di donazione nella sezione Informazioni

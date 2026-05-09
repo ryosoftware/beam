@@ -109,6 +109,10 @@ fun NotificationSettingsScreen(navController: NavController) {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 notificationIndicator = key
                                 saveNotificationIndicator()
+                                if (key in indicatorEntries) {
+                                    indicatorEntries = indicatorEntries - key
+                                    saveIndicatorEntries()
+                                }
                             },
                             shape = SegmentedButtonDefaults.itemShape(i, metricKeys.size),
                             label = { Text(metricLabels[i]) },
@@ -130,6 +134,7 @@ fun NotificationSettingsScreen(navController: NavController) {
                                     indicatorEntries + key
                                 saveIndicatorEntries()
                             },
+                            enabled = notificationIndicator != key,
                             shape = SegmentedButtonDefaults.itemShape(i, metricKeys.size),
                             label = { Text(metricLabels[i]) },
                         )

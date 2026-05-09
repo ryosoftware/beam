@@ -1,10 +1,14 @@
 package montafra.beam
 
 import android.Manifest.permission
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.IBinder
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -37,7 +41,7 @@ const val namespace = "montafra.beam"
 const val batteryDataReq = "$namespace.battery-data-req"
 const val batteryDataResp = "$namespace.battery-data-resp"
 const val intervalMs = 1_250L
-const val noteChannelId = "$namespace.status.v4"
+const val noteChannelId = "$namespace.status.v6"
 const val noteId = 1
 const val settingsName = "settings"
 const val settingsUpdateInd = "$namespace.settings-update-ind"
@@ -48,6 +52,12 @@ private object NoOpHapticFeedback : HapticFeedback {
 
 class MainActivity : ComponentActivity() {
     enum class Perm { Granted, Denied, NotAsked }
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {}
+        override fun onServiceDisconnected(name: ComponentName?) {}
+    }
+    private var bound = false
 
     private fun getPerm(name: String): Perm {
         val settings = getSharedPreferences(settingsName, MODE_PRIVATE)
@@ -64,14 +74,27 @@ class MainActivity : ComponentActivity() {
         requestPermissions(arrayOf(name), 0)
     }
 
-    private fun maybeStartService() {
-        if (getSharedPreferences(settingsName, MODE_PRIVATE).getBoolean("notificationEnabled", true))
-            startForegroundService(Intent(this, StatusService::class.java))
+    private fun startStatusService() {
+        val intent = Intent(this, StatusService::class.java)
+        if (getSharedPreferences(settingsName, MODE_PRIVATE).getBoolean("notificationEnabled", true)) {
+            startForegroundService(intent)
+        }
+        if (!bound) {
+            bound = bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (permissions.contains(permission.POST_NOTIFICATIONS)) maybeStartService()
+        if (permissions.contains(permission.POST_NOTIFICATIONS)) startStatusService()
+    }
+
+    override fun onDestroy() {
+        if (bound) {
+            unbindService(serviceConnection)
+            bound = false
+        }
+        super.onDestroy()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,9 +103,9 @@ class MainActivity : ComponentActivity() {
 
         if (getPerm(permission.POST_NOTIFICATIONS) == Perm.NotAsked) {
             requestPerm(permission.POST_NOTIFICATIONS)
-            // maybeStartService() is called from onRequestPermissionsResult once the user responds
+            // startStatusService() is called from onRequestPermissionsResult once the user responds
         } else {
-            maybeStartService()
+            startStatusService()
         }
 
         setContent {

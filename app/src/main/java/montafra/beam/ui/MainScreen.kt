@@ -41,6 +41,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -261,16 +264,19 @@ fun MainScreen(navController: NavController, vm: BatteryViewModel = viewModel())
                 }
                 item { Spacer(Modifier.height(8.dp)) }
                 item {
-                    MetricCard {
+                    MetricCard(
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 10.dp, bottomEnd = 10.dp),
+                    ) {
                         MetricRow(stringResource(R.string.power), data.power)
                         MetricRow(stringResource(R.string.current), data.current)
                         MetricRow(stringResource(R.string.voltage), data.voltage)
                         MetricRow(stringResource(R.string.temperature), data.temperature)
                         MetricRow(stringResource(R.string.energy), data.energy)
                     }
-                }
-                item {
-                    MetricCard {
+                    Spacer(Modifier.height(6.dp))
+                    MetricCard(
+                        shape = RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
+                    ) {
                         val rows = listOf(
                             stringResource(R.string.chargeLevel) to data.chargeLevel,
                             stringResource(R.string.charging) to data.charging,
@@ -288,6 +294,7 @@ fun MainScreen(navController: NavController, vm: BatteryViewModel = viewModel())
 
 @Composable
 private fun HeroCard(data: BatteryData) {
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val primary = MaterialTheme.colorScheme.primary
@@ -295,6 +302,26 @@ private fun HeroCard(data: BatteryData) {
 
     val scaleAnim = remember { Animatable(1f) }
     val lastTapMs = remember { LongArray(1) }
+
+    val thudVibrator = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vm.defaultVibrator.takeIf {
+                it.areAllPrimitivesSupported(VibrationEffect.Composition.PRIMITIVE_THUD)
+            }
+        } else null
+    }
+    val playThud = {
+        if (thudVibrator != null) {
+            thudVibrator.vibrate(
+                VibrationEffect.startComposition()
+                    .addPrimitive(VibrationEffect.Composition.PRIMITIVE_THUD)
+                    .compose()
+            )
+        } else {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        }
+    }
 
     val animatedProgress by animateFloatAsState(
         targetValue = data.chargeLevelFloat,
@@ -328,7 +355,7 @@ private fun HeroCard(data: BatteryData) {
                                 if (isDouble) {
                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 } else {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    playThud()
                                     scope.launch {
                                         scaleAnim.animateTo(
                                             0.82f,
@@ -398,10 +425,13 @@ private fun HeroCard(data: BatteryData) {
 }
 
 @Composable
-private fun MetricCard(content: @Composable () -> Unit) {
+private fun MetricCard(
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(24.dp),
+    content: @Composable () -> Unit,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.45f),
         ),

@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.ApplicationExtension
 import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -11,7 +12,7 @@ val localProps = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }
 
-android {
+configure<ApplicationExtension> {
     compileSdk = 37
 
     signingConfigs {
@@ -27,12 +28,12 @@ android {
         applicationId = "montafra.beam"
         minSdk = 28 // BatteryManager.computeChargeTimeRemaining()
         targetSdk = 37
-        versionCode = 21
-        versionName = "1.3"
+        versionCode = 1
+        versionName = "1.0"
     }
 
     androidResources {
-        localeFilters.addAll(listOf("en", "es"))
+        localeFilters.addAll(listOf("en", "es", "it"))
     }
 
     buildFeatures {
