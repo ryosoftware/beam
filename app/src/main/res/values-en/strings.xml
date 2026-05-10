@@ -36,6 +36,8 @@
     <string name="workarounds">Workarounds</string>
     <string name="workaroundsDesc">Many phones do not correctly implement the Android BatteryManager interface, and will report incorrect battery metrics by default. If needed, use the following settings to workaround implementation defects on your phone.</string>
     <string name="supportMe">Support development</string>
+    <string name="supportMeDesc">Help support my projects 🐢</string>
+    <string name="openInBrowser">Open in browser</string>
     <string name="copy">Copy</string>
     <string name="about">About</string>
     <string name="interfaceSection">Interface</string>

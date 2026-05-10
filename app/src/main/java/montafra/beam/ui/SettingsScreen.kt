@@ -42,8 +42,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -51,9 +49,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -94,7 +90,6 @@ fun SettingsScreen(navController: NavController) {
     }
     var showDonateDialog by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
     var notificationEnabled by remember { mutableStateOf(prefs.getBoolean("notificationEnabled", true)) }
     val version = remember {
         try { context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "" }
@@ -279,7 +274,7 @@ fun SettingsScreen(navController: NavController) {
                 ) {
                     ListItem(
                         headlineContent = { Text(stringResource(R.string.supportMe)) },
-                        supportingContent = { Text("BTC · XMR · Lightning") },
+                        supportingContent = { Text("Liberapay · BTC · XMR · Lightning") },
                         leadingContent = {
                             Icon(
                                 painter = painterResource(R.drawable.ico_donate),
@@ -357,55 +352,57 @@ fun SettingsScreen(navController: NavController) {
             onDismissRequest = { showDonateDialog = false },
             sheetState = sheetState,
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp)
-                .padding(bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ico_donate),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp),
-                )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ico_donate),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.supportMe),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
                 Text(
-                    text = stringResource(R.string.supportMe),
-                    style = MaterialTheme.typography.titleLarge,
+                    text = stringResource(R.string.supportMeDesc),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 16.dp),
                 )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-            ) {
-                DonateCard("Bitcoin", "sp1qqfzps48q94usuqwhfcp082kg3pphr9zyh32cg4h4q84rvr6pa3d6vq56w3trm5cs5rgw5g3wcravusunh39utwfy9p2fe7e4g774r66rwcagqpmy", clipboardManager, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 4.dp))
-                Spacer(Modifier.height(4.dp))
-                DonateCard("Monero", "876wwukGWhU9H6qez4Qmt5gTBBmdKzoDg3zvT33QCwjy9e7jS7MVjQySUCpNhoVrFcF15AicUJ4VaVrTKAXGMu5D7yUbqFs", clipboardManager, RoundedCornerShape(4.dp))
-                Spacer(Modifier.height(4.dp))
-                DonateCard("Lightning", "monta@cake.cash", clipboardManager, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp))
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                SuggestionChip(
-                    onClick = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) showDonateDialog = false
-                        }
-                    },
-                    label = { Text("Close") },
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
-                    border = null,
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    DonateCard(
+                        label = "Liberapay",
+                        address = "liberapay.com/montafra",
+                        clipboard = clipboardManager,
+                        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                        actionIconRes = R.drawable.ico_open_in_new,
+                        actionContentDescRes = R.string.openInBrowser,
+                        onActionClick = {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse("https://liberapay.com/montafra"))
+                            )
+                        },
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    DonateCard("Bitcoin", "sp1qqfzps48q94usuqwhfcp082kg3pphr9zyh32cg4h4q84rvr6pa3d6vq56w3trm5cs5rgw5g3wcravusunh39utwfy9p2fe7e4g774r66rwcagqpmy", clipboardManager, RoundedCornerShape(4.dp))
+                    Spacer(Modifier.height(4.dp))
+                    DonateCard("Monero", "876wwukGWhU9H6qez4Qmt5gTBBmdKzoDg3zvT33QCwjy9e7jS7MVjQySUCpNhoVrFcF15AicUJ4VaVrTKAXGMu5D7yUbqFs", clipboardManager, RoundedCornerShape(4.dp))
+                    Spacer(Modifier.height(4.dp))
+                    DonateCard("Lightning", "monta@cake.cash", clipboardManager, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp))
+                }
+                Spacer(Modifier.height(16.dp))
             }
         }
     }
@@ -454,15 +451,27 @@ internal fun ColorSwatchPicker(
 }
 
 @Composable
-private fun DonateCard(label: String, address: String, clipboard: ClipboardManager, shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(20.dp)) {
+private fun DonateCard(
+    label: String,
+    address: String,
+    clipboard: ClipboardManager,
+    shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(20.dp),
+    actionIconRes: Int = R.drawable.ico_copy,
+    actionContentDescRes: Int = R.string.copy,
+    onActionClick: (ClipboardManager) -> Unit = {
+        it.setPrimaryClip(ClipData.newPlainText(label, address))
+    },
+) {
     val haptic = LocalHapticFeedback.current
     val iconRes = when (label) {
+        "Liberapay" -> R.drawable.ico_liberapay
         "Bitcoin" -> R.drawable.ico_btc
         "Monero" -> R.drawable.ico_xmr
         "Lightning" -> R.drawable.ico_lightning
         else -> null
     }
     val brandColor = when (label) {
+        "Liberapay" -> Color(0xFFF6C915)
         "Bitcoin" -> Color(0xFFF7931A)
         "Monero" -> Color(0xFFFF6600)
         "Lightning" -> Color(0xFF9B59B6)
@@ -479,6 +488,10 @@ private fun DonateCard(label: String, address: String, clipboard: ClipboardManag
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable {
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    onActionClick(clipboard)
+                }
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -516,12 +529,12 @@ private fun DonateCard(label: String, address: String, clipboard: ClipboardManag
             IconButton(
                 onClick = {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    clipboard.setPrimaryClip(ClipData.newPlainText(label, address))
+                    onActionClick(clipboard)
                 }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ico_copy),
-                    contentDescription = stringResource(R.string.copy),
+                    painter = painterResource(actionIconRes),
+                    contentDescription = stringResource(actionContentDescRes),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -546,3 +559,4 @@ internal fun ColorSwatch(color: Int, selected: Boolean, onClick: () -> Unit) {
             },
     )
 }
+
