@@ -36,6 +36,8 @@
     <string name="workarounds">Soluzioni alternative</string>
     <string name="workaroundsDesc">Molti telefoni non implementano correttamente l\'interfaccia BatteryManager di Android e segnalano metriche errate per impostazione predefinita. Se necessario, usa le seguenti opzioni per risolvere i difetti di implementazione del tuo dispositivo.</string>
     <string name="supportMe">Supporta lo sviluppo</string>
+    <string name="supportMeDesc">Aiuta a sostenere i miei progetti 🐢</string>
+    <string name="openInBrowser">Apri nel browser</string>
     <string name="copy">Copia</string>
     <string name="about">Informazioni</string>
     <string name="interfaceSection">Interfaccia</string>
