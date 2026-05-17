@@ -63,6 +63,7 @@ fun ThemeSettingsScreen(navController: NavController) {
     var heroBacklight by remember { mutableStateOf(prefs.getBoolean("heroBacklight", true)) }
     var hapticsEnabled by remember { mutableStateOf(prefs.getBoolean("hapticsEnabled", true)) }
     var keepScreenOn by remember { mutableStateOf(prefs.getBoolean("keepScreenOn", false)) }
+    var monoFont by remember { mutableStateOf(prefs.getBoolean("monoFont", false)) }
 
     Scaffold(
         topBar = {
@@ -220,7 +221,7 @@ fun ThemeSettingsScreen(navController: NavController) {
                 Spacer(Modifier.height(4.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
+                    shape = RoundedCornerShape(4.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 ) {
@@ -242,6 +243,34 @@ fun ThemeSettingsScreen(navController: NavController) {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             keepScreenOn = !keepScreenOn
                             prefs.edit().putBoolean("keepScreenOn", keepScreenOn).commit()
+                        },
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                ) {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.monoFont)) },
+                        supportingContent = { Text(stringResource(R.string.monoFontDesc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = monoFont,
+                                onCheckedChange = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    monoFont = it
+                                    prefs.edit().putBoolean("monoFont", it).commit()
+                                },
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            monoFont = !monoFont
+                            prefs.edit().putBoolean("monoFont", monoFont).commit()
                         },
                     )
                 }
