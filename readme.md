@@ -54,7 +54,7 @@ Beam needs notification permissions on newer Android phones. Open the app once a
 ```
 bc1q7v38g2xn7wxtwn6ewde4kydn5emjr3zt73ew96
 ```
-**XMR:**
+**Monero (XMR):**
 ```
 876wwukGWhU9H6qez4Qmt5gTBBmdKzoDg3zvT33QCwjy9e7jS7MVjQySUCpNhoVrFcF15AicUJ4VaVrTKAXGMu5D7yUbqFs
 ```
