@@ -29,6 +29,8 @@ Beam is inspired by the original [Wattz](https://github.com/dubrowgn/wattz) app.
 - No collection of user data of any kind
 - No sharing data with third parties
 
+See [privacy.md](privacy.md) for the full policy.
+
 ## Screenshots
 
 <img src="readme/00.oled.png" alt="Home (OLED)" width="48%" /> <img src="readme/03.notification.png" alt="Notification" width="48%" />
