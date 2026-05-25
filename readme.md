@@ -1,5 +1,8 @@
-# Beam
+<p align="center">
+  <img src="rounded_beam.png" alt="Beam" width="128" />
+</p>
 
+<h1 align="center">Beam</h1>
 
 *Real-time battery monitor for Android.*
 

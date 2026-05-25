@@ -1,4 +1,4 @@
-# Privacy
+# Privacy Policy
 
 Beam runs entirely on your device. It makes no network requests, has no
 analytics or crash reporting, no ads, and no third-party SDKs. The app

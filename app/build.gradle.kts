@@ -33,7 +33,7 @@ configure<ApplicationExtension> {
     }
 
     androidResources {
-        localeFilters.addAll(listOf("en", "es", "it"))
+        localeFilters.addAll(listOf("en", "es", "it", "de", "fr", "uk"))
     }
 
     buildFeatures {
