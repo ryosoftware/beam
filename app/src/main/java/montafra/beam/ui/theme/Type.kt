@@ -52,6 +52,7 @@ fun fontFamilyFor(key: String): FontFamily? = when (key) {
     "dm_sans" -> variableFamily(R.font.dm_sans)
     "space_grotesk" -> variableFamily(R.font.space_grotesk)
     "jetbrains_mono" -> variableFamily(R.font.jetbrains_mono)
+    "noto_sans_mono" -> variableFamily(R.font.noto_sans_mono)
     else -> null
 }
 

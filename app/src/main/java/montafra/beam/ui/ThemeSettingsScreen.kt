@@ -169,9 +169,9 @@ fun ThemeSettingsScreen(navController: NavController) {
             item {
                 SubLabel(stringResource(R.string.customization))
                 Spacer(Modifier.height(8.dp))
-                val fontKeys = listOf("default", "inter", "dm_sans", "space_grotesk", "jetbrains_mono")
+                val fontKeys = listOf("default", "inter", "dm_sans", "space_grotesk", "jetbrains_mono", "noto_sans_mono")
                 val fontLabels = listOf(
-                    stringResource(R.string.fontDefault), "Inter", "DM Sans", "Space Grotesk", "JetBrains Mono",
+                    stringResource(R.string.fontDefault), "Inter", "DM Sans", "Space Grotesk", "JetBrains Mono", "Noto Sans Mono",
                 )
                 var fontMenuExpanded by remember { mutableStateOf(false) }
                 val selectedFontLabel = fontLabels[fontKeys.indexOf(fontFamily).takeIf { it >= 0 } ?: 0]
