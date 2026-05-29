@@ -40,6 +40,11 @@
     <string name="openInBrowser">Ouvrir dans le navigateur</string>
     <string name="copy">Copier</string>
     <string name="about">À propos</string>
+    <string name="language">Langue</string>
+    <string name="languageDesc">Définir la langue de l\'application</string>
+    <string name="changelog">Journal des modifications</string>
+    <string name="issueTracker">Suivi des problèmes</string>
+    <string name="appDescription">Indicateurs de batterie en direct épinglés dans la barre d\'état</string>
     <string name="interfaceSection">Interface</string>
     <string name="theme">Thème</string>
     <string name="notification">Notification</string>

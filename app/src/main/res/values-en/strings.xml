@@ -40,6 +40,11 @@
     <string name="openInBrowser">Open in browser</string>
     <string name="copy">Copy</string>
     <string name="about">About</string>
+    <string name="language">Language</string>
+    <string name="languageDesc">Set the app\'s language</string>
+    <string name="changelog">Changelog</string>
+    <string name="issueTracker">Issue tracker</string>
+    <string name="appDescription">Live battery metrics pinned to your status bar</string>
     <string name="interfaceSection">Interface</string>
     <string name="theme">Theme</string>
     <string name="notification">Notification</string>

@@ -40,6 +40,11 @@
     <string name="openInBrowser">Відкрити в браузері</string>
     <string name="copy">Копіювати</string>
     <string name="about">Про застосунок</string>
+    <string name="language">Мова</string>
+    <string name="languageDesc">Встановити мову застосунку</string>
+    <string name="changelog">Журнал змін</string>
+    <string name="issueTracker">Відстеження проблем</string>
+    <string name="appDescription">Актуальні дані акумулятора, закріплені в рядку стану</string>
     <string name="interfaceSection">Інтерфейс</string>
     <string name="theme">Тема</string>
     <string name="notification">Сповіщення</string>

@@ -65,7 +65,7 @@ fun ThemeSettingsScreen(navController: NavController) {
     val prefs = remember { context.getSharedPreferences(settingsName, Context.MODE_PRIVATE) }
 
     var themeMode by remember { mutableStateOf(prefs.getString("themeMode", "system") ?: "system") }
-    var customColorValue by remember { mutableIntStateOf(prefs.getInt("themeColorValue", colorSwatches[6])) }
+    var customColorValue by remember { mutableIntStateOf(prefs.getInt("themeColorValue", colorSwatches[5])) }
     var heroBacklight by remember { mutableStateOf(prefs.getBoolean("heroBacklight", true)) }
     var hapticsEnabled by remember { mutableStateOf(prefs.getBoolean("hapticsEnabled", true)) }
     var keepScreenOn by remember { mutableStateOf(prefs.getBoolean("keepScreenOn", false)) }
@@ -140,7 +140,7 @@ fun ThemeSettingsScreen(navController: NavController) {
                                     customColorValue = -1
                                     prefs.edit().putInt("themeColorValue", -1).commit()
                                 } else {
-                                    val color = if (customColorValue != -1) customColorValue else colorSwatches[6]
+                                    val color = if (customColorValue != -1) customColorValue else colorSwatches[5]
                                     customColorValue = color
                                     prefs.edit().putInt("themeColorValue", color).commit()
                                 }
