@@ -66,6 +66,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -111,6 +113,8 @@ fun SettingsScreen(navController: NavController) {
     }
     var showChangelog by remember { mutableStateOf(false) }
     var changelogEntries by remember { mutableStateOf(emptyList<ChangelogEntry>()) }
+    var showAppInfo by remember { mutableStateOf(false) }
+    val appInfoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val applyNotificationEnabled = { enabled: Boolean ->
         notificationEnabled = enabled
@@ -237,9 +241,14 @@ fun SettingsScreen(navController: NavController) {
                         Spacer(Modifier.height(4.dp))
                     }
                 }
+                val showLanguage = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
+                    shape = RoundedCornerShape(
+                        topStart = 4.dp, topEnd = 4.dp,
+                        bottomStart = if (showLanguage) 4.dp else 20.dp,
+                        bottomEnd = if (showLanguage) 4.dp else 20.dp,
+                    ),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 ) {
@@ -260,6 +269,41 @@ fun SettingsScreen(navController: NavController) {
                             navController.navigate("settings/theme")
                         },
                     )
+                }
+                if (showLanguage) {
+                    Spacer(Modifier.height(4.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    ) {
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.language)) },
+                            supportingContent = { Text(stringResource(R.string.languageDesc)) },
+                            leadingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ico_language),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier.clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                try {
+                                    context.startActivity(
+                                        Intent(Settings.ACTION_APP_LOCALE_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                                    )
+                                } catch (_: Exception) {
+                                    context.startActivity(
+                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                                    )
+                                }
+                            },
+                        )
+                    }
                 }
             }
 
@@ -325,47 +369,13 @@ fun SettingsScreen(navController: NavController) {
                 Spacer(Modifier.height(4.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-                ) {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.sourceCode)) },
-                        supportingContent = { Text("github.com/montafra/beam") },
-                        leadingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.ico_github),
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        },
-                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.combinedClickable(
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/montafra/beam"))
-                                )
-                            },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                clipboardManager.setPrimaryClip(
-                                    ClipData.newPlainText("Source Code", "https://github.com/montafra/beam")
-                                )
-                            },
-                        ),
-                    )
-                }
-                Spacer(Modifier.height(4.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                 ) {
                     ListItem(
                         headlineContent = { Text("Beam $version") },
-                        supportingContent = { Text("No ads · No tracking · No data collection") },
+                        supportingContent = { Text("Version, license & links") },
                         leadingContent = {
                             Icon(
                                 painter = painterResource(R.drawable.ico_info),
@@ -374,21 +384,10 @@ fun SettingsScreen(navController: NavController) {
                             )
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                        modifier = Modifier.combinedClickable(
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                context.startActivity(
-                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                        setData(Uri.fromParts("package", context.packageName, null))
-                                    }
-                                )
-                            },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                changelogEntries = loadChangelogs(context, 0, currentVersionCode)
-                                if (changelogEntries.isNotEmpty()) showChangelog = true
-                            },
-                        ),
+                        modifier = Modifier.clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showAppInfo = true
+                        },
                     )
                 }
             }
@@ -466,7 +465,220 @@ fun SettingsScreen(navController: NavController) {
             onDismiss = { showChangelog = false },
         )
     }
-}
+
+    if (showAppInfo) {
+        ModalBottomSheet(
+            onDismissRequest = { showAppInfo = false },
+            sheetState = appInfoSheetState,
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(
+                        modifier = Modifier
+                            .size(88.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                context.startActivity(
+                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                                )
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ico_logo),
+                            contentDescription = stringResource(R.string.settings),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(60.dp),
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "v$version",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .combinedClickable(
+                                onClick = {},
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    clipboardManager.setPrimaryClip(
+                                        ClipData.newPlainText("Beam", "Beam $version")
+                                    )
+                                },
+                            )
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "by montafra",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/montafra"))
+                                )
+                            }
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.appDescription),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                .clickable {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showAppInfo = false
+                                    changelogEntries = loadChangelogs(context, 0, currentVersionCode)
+                                    if (changelogEntries.isNotEmpty()) showChangelog = true
+                                }
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ico_info),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.changelog),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.ico_chevron_right),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                .combinedClickable(
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/montafra/beam"))
+                                        )
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        clipboardManager.setPrimaryClip(
+                                            ClipData.newPlainText("Source Code", "https://github.com/montafra/beam")
+                                        )
+                                    },
+                                )
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ico_github),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.sourceCode),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.ico_open_in_new),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                .combinedClickable(
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        context.startActivity(
+                                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/montafra/beam/issues"))
+                                        )
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        clipboardManager.setPrimaryClip(
+                                            ClipData.newPlainText("Issue Tracker", "https://github.com/montafra/beam/issues")
+                                        )
+                                    },
+                                )
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ico_bug),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.issueTracker),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.ico_open_in_new),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        text = "No ads · No tracking · No data collection",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "MIT · © 2026 Francesco Montalegni",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(24.dp))
+                }
+            }
+        }
+    }
 
 @Composable
 internal fun SectionHeader(text: String) {
@@ -488,10 +700,10 @@ internal fun SubLabel(text: String) {
 }
 
 internal val colorSwatches = listOf(
-    0xFFB3261E, 0xFFC94B0C, 0xFFF0A500,
-    0xFF386A20, 0xFF00696B, 0xFF0061A4,
-    0xFF5F4AA6, 0xFFB5006D, 0xFF9C4046,
-    0xFF795548, 0xFF546E7A, 0xFF4C6B00,
+    0xFFE53935, 0xFFF4511E, 0xFFFB8C00,
+    0xFFFFB300, 0xFF7CB342, 0xFF43A047,
+    0xFF00897B, 0xFF00ACC1, 0xFF1E88E5,
+    0xFF3949AB, 0xFF8E24AA, 0xFFD81B60,
 ).map { it.toInt() }
 
 @Composable

@@ -40,6 +40,11 @@
     <string name="openInBrowser">Open in browser</string>
     <string name="copy">Copy</string>
     <string name="about">About</string>
+    <string name="language">Language</string>
+    <string name="languageDesc">Set the app\'s language</string>
+    <string name="changelog">Changelog</string>
+    <string name="issueTracker">Issue tracker</string>
+    <string name="appDescription">Live battery metrics pinned to your status bar</string>
     <string name="interfaceSection">Interface</string>
     <string name="theme">Theme</string>
     <string name="notification">Notification</string>
@@ -61,7 +66,8 @@
     <string name="hapticsEnabled">Haptic Feedback</string>
     <string name="hapticsEnabledDesc">Vibrate on tap and press</string>
     <string name="whatsNew">What\'s New</string>
-    <string name="monoFont">Monospace Font</string>
-    <string name="monoFontDesc">Use a monospaced typeface throughout the app</string>
+    <string name="font">Font</string>
+    <string name="fontDefault">Default</string>
+    <string name="fontDesc">Typeface used throughout the app</string>
     <string name="widgetTempLabel">Battery Temperature</string>
 </resources>

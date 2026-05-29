@@ -40,6 +40,11 @@
     <string name="openInBrowser">Abrir en el navegador</string>
     <string name="copy">Copiar</string>
     <string name="about">Acerca de</string>
+    <string name="language">Idioma</string>
+    <string name="languageDesc">Establecer el idioma de la aplicación</string>
+    <string name="changelog">Registro de cambios</string>
+    <string name="issueTracker">Seguimiento de problemas</string>
+    <string name="appDescription">Métricas de batería en vivo ancladas en la barra de estado</string>
     <string name="interfaceSection">Interfaz</string>
     <string name="theme">Tema</string>
     <string name="notification">Notificación</string>
@@ -63,7 +68,8 @@
     <string name="hapticsEnabled">Vibración táctil</string>
     <string name="hapticsEnabledDesc">Vibrar al tocar y pulsar</string>
     <string name="whatsNew">Novedades</string>
-    <string name="monoFont">Fuente monoespaciada</string>
-    <string name="monoFontDesc">Usa una tipografía de ancho fijo en toda la aplicación</string>
+    <string name="font">Fuente</string>
+    <string name="fontDefault">Predeterminada</string>
+    <string name="fontDesc">Tipografía usada en toda la aplicación</string>
     <string name="widgetTempLabel">Temperatura de la batería</string>
 </resources>
