@@ -332,6 +332,12 @@ fun MainScreen(navController: NavController, vm: BatteryViewModel = viewModel())
                         rows.forEach { (label, value) -> MetricRow(label, value) }
                     }
                 }
+                item {
+                    MetricCard(shape = RoundedCornerShape(24.dp)) {
+                        MetricRow(stringResource(R.string.screenTime), data.screenTime)
+                    }
+                    Spacer(Modifier.height(4.dp))
+                }
                 item { Spacer(Modifier.height(16.dp)) }
             }
         }

@@ -59,6 +59,9 @@ fun NotificationSettingsScreen(navController: NavController) {
         mutableStateOf(prefs.getString("notificationIndicator", "W") ?: "W")
     }
     var showTimeToFull by remember { mutableStateOf(prefs.getBoolean("showTimeToFull", true)) }
+    var showScreenTimeInNotification by remember {
+        mutableStateOf(prefs.getBoolean("showScreenTimeInNotification", false))
+    }
 
     fun saveIndicatorEntries() {
         prefs.edit().putStringSet("indicatorEntries", indicatorEntries).commit()
@@ -168,6 +171,38 @@ fun NotificationSettingsScreen(navController: NavController) {
                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                             showTimeToFull = !showTimeToFull
                             prefs.edit().putBoolean("showTimeToFull", showTimeToFull).commit()
+                            context.sendBroadcast(
+                                Intent().setPackage(context.packageName).setAction(settingsUpdateInd)
+                            )
+                        },
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                BeamCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
+                ) {
+                    ListItem(
+                        headlineContent = { Text(stringResource(R.string.screenTime)) },
+                        supportingContent = { Text(stringResource(R.string.screenTimeShowInNotificationDesc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = showScreenTimeInNotification,
+                                onCheckedChange = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    showScreenTimeInNotification = it
+                                    prefs.edit().putBoolean("showScreenTimeInNotification", it).commit()
+                                    context.sendBroadcast(
+                                        Intent().setPackage(context.packageName).setAction(settingsUpdateInd)
+                                    )
+                                },
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                        modifier = Modifier.clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            showScreenTimeInNotification = !showScreenTimeInNotification
+                            prefs.edit().putBoolean("showScreenTimeInNotification", showScreenTimeInNotification).commit()
                             context.sendBroadcast(
                                 Intent().setPackage(context.packageName).setAction(settingsUpdateInd)
                             )
